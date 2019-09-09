@@ -7,8 +7,11 @@
     >
     <ul v-else>
         <li v-for="(item, index) in products"> 
-          {{ item.title }} - {{ item.price }} -{{ item.inventory }}
-          <button @click="addProductToCart(item)">Add to Cart</button> 
+          {{ item.title }} - {{ item.price | currency }} -{{ item.inventory }}
+          <button 
+            :disabled="!productIsInStock(item)"
+            @click="addProductToCart(item)"
+          >Add to Cart</button> 
         </li>
     </ul>
   </div>
@@ -25,7 +28,12 @@
       products() {
         // 接收 state 傳過來的 state
         // return this.$store.state.products
-        return this.$store.getters.availableProducts
+        console.log('--------products--------', this.$store.state);
+        return this.$store.state.products
+      },
+
+      productIsInStock() {
+        return this.$store.getters.productIsInStock
       }
     },
     created() {

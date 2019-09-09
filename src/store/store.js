@@ -1,12 +1,13 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import shop from '@/api/shop'
+import shop from '@/api/shop';
 Vue.use(Vuex);
 
 export const store = new Vuex.Store({
     state: { // data
         products: [],
-        cart: []
+        cart: [],
+        checkoutStatus: null
     },
     getters: { 
         // computed
@@ -16,6 +17,30 @@ export const store = new Vuex.Store({
         availableProducts(state, getters) {
             console.log('-------getters---------', getters);
             return state.products.filter( (item) => (item.inventory > 0) )
+        },
+
+        cartProducts(state) {
+            return state.cart.map( (item) => {
+                const product = state.products.find( (subItem) => ( subItem.id === item.id ) );
+
+                return {
+                    title: product.title,
+                    price: product.price,
+                    quantity: item.quantity
+                }
+            })
+        },
+
+        cartTotal(state, getters) {
+            return getters.cartProducts.reduce( (accumulator, currentValue) => ( accumulator + currentValue.price * currentValue.quantity), 0)
+        },
+
+        // getter  可以解決 computed 無法傳入參數的問題
+        // 在 getter 寫一個 function 即可子元件傳入參數
+        productIsInStock() {
+            return (item) => {
+                return item.inventory > 0
+            }
         }
     },
     actions: {
@@ -33,23 +58,41 @@ export const store = new Vuex.Store({
                 } )
             })
         },
-        addProductToCart(context, product) {
-            console.log('-----addProductToCart-----------',context );
-            console.log('----------addProductToCart------', context.state.cart);
-            if(product.inventory > 0) {
+        addProductToCart( {state, getters, commit }, product) {
+            // context 是一個 Object
+            // { state, getters, commit } = context 
+            // 可以透過 context.commit call mutations 底下的 method
+            // 也可以透過 context 呼叫 定義好的 getters method
+            // console.log('-----addProductToCart-----------',context );
+            // console.log('----------addProductToCart------', context.state.cart);
+            if(getters.productIsInStock(product)) {
                 // find cart item
-                const cartItem = context.state.cart.find( (item) => item.id === product.id )
+                const cartItem = state.cart.find( (item) => item.id === product.id )
                 console.log('----------------',!cartItem );
                 if(!cartItem) {
                     // push product to cart
-                    context.commit('pushProductToCart', product.id)
+                    commit('pushProductToCart', product.id)
                 } else {
                     // increment item quantity
-                    context.commit('incrementItemQuantity', cartItem)
+                    commit('incrementItemQuantity', cartItem)
                 }
-                context.commit('decrementProductInventory', product)
+                commit('decrementProductInventory', product)
             }
            
+        },
+
+        checkout({state, commit}) {
+            // 上面的參數是這樣解構的 { state, commit} = context
+            shop.buyProducts(
+                state.cart,
+                () => {
+                    commit('emptyCart')
+                    commit('setCheckoutStatus', 'success')
+                },
+                () => {
+                    commit('setCheckoutStatus', 'fail')
+                },
+            ) 
         }
     },
     mutations: { 
@@ -76,6 +119,14 @@ export const store = new Vuex.Store({
 
         decrementProductInventory(state, product) {
             product.inventory--
+        },
+
+        setCheckoutStatus(state, status) {
+            state.checkoutStatus = status
+        },
+
+        emptyCart(state) {
+            state.cart = []
         }
 
     }
