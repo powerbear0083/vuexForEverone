@@ -18,6 +18,7 @@
 </template>
 
 <script>
+  import { mapState, mapGetters, mapActions } from 'vuex'
   export default {
     data() {
       return {
@@ -25,16 +26,14 @@
       }
     },
     computed: {
-      products() {
-        // 接收 state 傳過來的 state
-        // return this.$store.state.products
-        console.log('--------products--------', this.$store.state);
-        return this.$store.state.products
-      },
 
-      productIsInStock() {
-        return this.$store.getters.productIsInStock
-      }
+      ...mapState({
+        products: (state) => state.products
+      }),
+
+      ...mapGetters({
+        productIsInStock: 'productIsInStock'
+      })
     },
     created() {
       this.loading = true;
@@ -44,13 +43,18 @@
 
       // 第一個參數是 action name
       // 第二個參數是 payload
-      this.$store.dispatch('fetchProducts')
-        .then( () => (this.loading = false) )
+      // this.$store.dispatch('fetchProducts').then( () => (this.loading = false) )
+      this.fetchProducts().then( () => (this.loading = false) )
     },
     methods: {
-      addProductToCart(product) {
-        this.$store.dispatch('addProductToCart', product)
-      }
+
+      ...mapActions({
+        fetchProducts: 'fetchProducts',
+        addProductToCart: 'addProductToCart'
+      })
+      // addProductToCart(product) {
+      //   this.$store.dispatch('addProductToCart', product)
+      // }
     }
   }
 </script>
