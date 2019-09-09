@@ -6,6 +6,9 @@ import { store } from '@/store/store'
 
 Vue.config.productionTip = false
 /* eslint-disable no-new */
+// 只要在 root instance 注入 store 
+// 就可以在所有元件存取到 store 
+// 這樣就有全域的 store 透過 this.$store 存取
 new Vue({
   el: '#app',
   store,

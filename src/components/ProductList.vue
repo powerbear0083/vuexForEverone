@@ -23,12 +23,19 @@
     },
     computed: {
       products() {
+        // 接收 state 傳過來的 state
         // return this.$store.state.products
         return this.$store.getters.availableProducts
       }
     },
     created() {
-      this.loading = true
+      this.loading = true;
+      // 要在元件觸發 action 必須使用 dispatch
+      // 跟 commit 相似，但是 commit 是呼叫 mutations method
+      // dispatch 是呼叫 action method
+
+      // 第一個參數是 action name
+      // 第二個參數是 payload
       this.$store.dispatch('fetchProducts')
         .then( () => (this.loading = false) )
     },
