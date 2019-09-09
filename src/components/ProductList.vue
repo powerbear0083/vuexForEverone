@@ -28,7 +28,11 @@
     computed: {
 
       ...mapState({
-        products: (state) => state.products
+        products: (state) => {
+          // console.log('----------------',state );
+          return state.product.items
+          
+        }
       }),
 
       ...mapGetters({
